@@ -47,28 +47,5 @@ A função de recomendação utiliza uma fila (`VecDeque`) para explorar os vizi
     cargo run
     ```
 
-## 📖 Exemplo de Interação
-
-Ao rodar o programa, você verá o menu interativo:
-
-```text
-=== Sistema de Busca Otimizada MegaStore ===
-
-Digite a categoria que deseja procurar (ou 'sair'): eletronicos
-
---- Resultados encontrados para: eletronicos ---
-Produto: Notebook
-  -> Clientes também levaram: [Mouse] [Teclado] [Monitor 4K] 
-Produto: Mouse
-...
-```
-
-## 🧪 Melhorias Futuras Sugeridas
-
-- [ ] **Persistência de Dados**: Carregar produtos e relacionamentos de arquivos JSON ou CSV em vez de estarem no código (hardcoded).
-- [ ] **Pesos nas Arestas**: Adicionar pesos ao grafo para indicar a "força" da recomendação (ex: número de vezes que os itens foram comprados juntos).
-- [ ] **Testes Unitários**: Implementar testes nos módulos de grafo e recomendação para garantir a integridade dos algoritmos.
-- [ ] **Interface Gráfica**: Evoluir a CLI para uma interface web utilizando frameworks como Rocket ou Axum.
-
 ---
 *Este projeto foi desenvolvido como parte de um desafio prático de Rust na faculdade.*
