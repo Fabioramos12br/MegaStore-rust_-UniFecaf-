@@ -1,28 +1,24 @@
-use std::collections::{HashSet, VecDeque};
 use crate::graph::Graph;
+use std::collections::VecDeque;
 
-pub fn recommend_bfs(graph: &Graph, start: u32, depth: usize) -> Vec<u32> {
-    let mut visited = HashSet::new();
+pub fn recommend_bfs(graph: &Graph, start_node: u32) -> Vec<u32> {
+    let mut recommendations = Vec::new();
+    let mut visited = std::collections::HashSet::new();
     let mut queue = VecDeque::new();
 
-    let mut recommendations = Vec::new();
+    visited.insert(start_node);
+    queue.push_back(start_node);
 
-    queue.push_back((start, 0));
-    visited.insert(start);
-
-    while let Some((node, level)) = queue.pop_front() {
-        if level >= depth {
-            continue;
-        }
-
-        for neighbor in graph.get_neighbors(node) {
+    while let Some(current) = queue.pop_front() {
+        for &neighbor in graph.get_neighbors(current).iter() {
             if !visited.contains(&neighbor) {
                 visited.insert(neighbor);
                 recommendations.push(neighbor);
-                queue.push_back((neighbor, level + 1));
+                // Limitamos a recomendação aos vizinhos mais próximos para ser rápido
+                if recommendations.len() >= 3 { break; }
             }
         }
+        if recommendations.len() >= 3 { break; }
     }
-
     recommendations
 }

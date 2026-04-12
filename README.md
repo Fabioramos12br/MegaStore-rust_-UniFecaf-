@@ -1,51 +1,61 @@
-# MegaStore: Sistema de Busca e Recomendação Otimizada
+# 🚀 MegaStore: Sistema de Busca e Recomendação de Alta Performance
 
-Este projeto consiste em um protótipo funcional de um sistema de catálogo de produtos e motor de recomendações, desenvolvido em **Rust**. O sistema demonstra a aplicação prática de estruturas de dados avançadas, como Tabelas Hash e Grafos, para resolver problemas reais de performance e relevância em e-commerce.
+Este projeto é um motor de busca e recomendação desenvolvido em **Rust** para a disciplina de estrutura de dados (UniFecaf). Ele demonstra como lidar com grandes volumes de dados (Big Data) e relações complexas entre produtos utilizando estruturas altamente eficientes como **HashMaps** e **Grafos**.
 
 ## 🚀 Funcionalidades
 
-- **Busca por Categoria Otimizada**: Utiliza indexação via `HashMap` para garantir que a localização de produtos por categoria seja feita em tempo constante médio $O(1)$.
-- **Relacionamentos via Grafo**: Os produtos não são apenas itens isolados; eles estão conectados em um grafo que representa comportamentos de compra (ex: "quem comprou este produto também se interessou por aquele").
-- **Motor de Recomendação (BFS)**: Implementa o algoritmo de Busca em Largura (Breadth-First Search) para navegar pelos relacionamentos do grafo e sugerir itens complementares ao usuário.
-- **Interface CLI Interativa**: Permite ao usuário realizar buscas em tempo real através do terminal.
+- **Busca Instantânea**: Localização de itens por nome exato em tempo constante $O(1)$ através de um `HashMap`, testado com um catálogo de **1.000.000 de produtos**.
+- **Motor de Recomendação Inteligente**: Utiliza um **Grafo não-direcionado** para mapear afinidades entre produtos.
+- **Algoritmo BFS (Breadth-First Search)**: Implementação de busca em largura para encontrar recomendações de vizinhança imediata.
+- **Geração Dinâmica de Dados**: Script para simulação de inventário em larga escala e inserção de itens específicos para testes.
+- **Interface CLI**: Terminal interativo com medição de tempo de resposta em microssegundos.
 
-## 🛠️ Arquitetura e Estrutura de Arquivos
+## 🛠️ Arquitetura do Sistema
 
-O projeto foi modularizado para seguir as melhores práticas de organização de código em Rust:
+O software é dividido em módulos para garantir manutenibilidade e separação de conceitos:
 
-- **`src/main.rs`**: Ponto de entrada da aplicação. Contém a lógica da interface de linha de comando, a inicialização dos dados e a orquestração entre a busca indexada e as recomendações.
-- **`src/product.rs`**: Define a estrutura `Product`, que representa a entidade base do sistema.
-- **`src/graph.rs`**: Implementa a estrutura de `Graph` utilizando uma lista de adjacência (mapeada com `HashMap<u32, Vec<u32>>`).
-- **`src/recommendation.rs`**: Contém a lógica algorítmica do sistema, especificamente a função `recommend_bfs`.
-- **`src/lib.rs`**: Gerencia a visibilidade dos módulos internos.
+- `src/main.rs`: Orquestrador principal. Gerencia o loop de entrada do usuário e exibe os resultados.
+- `src/models.rs`: Define a estrutura `Product` com metadados como preço, marca e categoria.
+- `src/graph.rs`: Implementação da estrutura de dados de Grafo (Lista de Adjacência).
+- `src/recommendation.rs`: Lógica algorítmica de travessia do grafo.
+- `src/data.rs`: Camada de persistência simulada que popula o catálogo.
 
-## 🧠 Conceitos Técnicos Aplicados
+## 🧠 Engenharia de Software Aplicada
 
-### 1. Indexação Otimizada
-Em vez de percorrer a lista inteira de produtos toda vez que uma categoria é pesquisada ($O(n)$), o sistema constrói um `category_index` no início da execução. Isso permite que o acesso aos IDs dos produtos de uma categoria específica seja instantâneo.
+### 1. Performance de Busca
+Diferente de uma busca linear em vetores ($O(n)$), o uso de uma Tabela Hash para o catálogo permite que o sistema encontre um produto específico entre milhões de entradas em apenas alguns microssegundos ($\approx 15\mu s$).
 
-### 2. Representação em Grafo
-O grafo é direcionado, onde cada aresta representa uma recomendação lógica. Por exemplo:
-*   Notebook $\rightarrow$ Mouse
-*   Notebook $\rightarrow$ Teclado
+### 2. O Grafo de Relacionamentos
+As conexões entre produtos (Ex: *iPhone 15* ↔ *Monitor Gamer*) são representadas por arestas em um grafo. Isso permite expandir o motor de recomendações para sistemas de "Quem comprou, também comprou".
 
-### 3. Algoritmo de Busca (BFS)
-A função de recomendação utiliza uma fila (`VecDeque`) para explorar os vizinhos de um produto. No estado atual, ela está configurada para uma profundidade de nível 1, mas a arquitetura permite recomendações de níveis mais profundos (amigos de amigos).
+### 3. Gestão de Memória com Rust
+O projeto tira proveito do sistema de *Ownership* do Rust para garantir que o catálogo massivo seja gerenciado sem *memory leaks* e sem a necessidade de um Garbage Collector.
 
-## 💻 Como Executar
+## 💻 Como Instalar e Rodar
 
-### Pré-requisitos
-*   Possuir o Rust instalado (Cargo incluso).
+### 1. Pré-requisitos
+*   Rust & Cargo instalados.
 
-### Passos
-1.  Navegue até a pasta do projeto:
-    ```bash
-    cd z:\FACULDADE\RUST\meu_projeto
-    ```
-2.  Execute a aplicação:
-    ```bash
-    cargo run
-    ```
+### 2. Execução
+Para testar com a performance máxima (especialmente devido ao 1 milhão de itens), execute em modo release:
+```bash
+cargo run --release
+```
+
+## 📊 Exemplo de Fluxo
+
+1. **Inicialização**: O sistema gera 1.000.000 de produtos e indexa nomes como "Smartphone Galaxy S24".
+2. **Busca**: O usuário digita "iPhone 15 Pro".
+3. **Processamento**: 
+   - O `HashMap` retorna o objeto `Product` instantaneamente.
+   - O motor de recomendação consulta o `Graph` pelo ID 5002.
+   - O BFS encontra IDs vizinhos (ex: 5001 e 5003).
+4. **Saída**: Exibe detalhes do produto e as sugestões de compra.
+
+## 🚀 Próximos Passos (Roadmap)
+- [ ] **Otimização de Memória**: Utilizar um `HashMap<u32, &Product>` para busca de recomendações por ID em $O(1)$ (atualmente utiliza `.find()` que é linear).
+- [ ] **Busca por Prefixo**: Implementar uma árvore *Trie* para permitir buscas parciais (ex: digitar "Smart" e aparecer "Smartphone").
+- [ ] **Persistência Real**: Conectar a um banco de dados NoSQL ou SQLite.
 
 ---
-*Este projeto foi desenvolvido como parte de um desafio prático de Rust na faculdade.*
+*Projeto desenvolvido para fins acadêmicos na UniFecaf.*

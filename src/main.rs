@@ -1,83 +1,76 @@
-mod product;
+mod models;
 mod graph;
 mod recommendation;
+mod data;
 
 use std::collections::HashMap;
-use std::io::{self, Write}; // Necessário para entrada de dados
-use product::Product;
+use std::io::{self, Write};
+use std::time::Instant;
+use models::Product;
 use graph::Graph;
 use recommendation::recommend_bfs;
+use data::carregar_catalogo;
 
 fn main() {
-    // 1. Catálogo de Produtos (Vasto catálogo conforme o desafio) [cite: 6]
-    let products = vec![
-        Product { id: 1, name: "Notebook".to_string(), category: "Eletronicos".to_string() },
-        Product { id: 2, name: "Mouse".to_string(), category: "Eletronicos".to_string() },
-        Product { id: 3, name: "Teclado".to_string(), category: "Eletronicos".to_string() },
-        Product { id: 4, name: "Cadeira Gamer".to_string(), category: "Moveis".to_string() },
-        Product { id: 5, name: "Monitor 4K".to_string(), category: "Eletronicos".to_string() },
-        Product { id: 6, name: "Mesa de Escritorio".to_string(), category: "Moveis".to_string() },
-        Product { id: 7, name: "Headset Wireless".to_string(), category: "Acessorios".to_string() },
-        Product { id: 8, name: "Webcam HD".to_string(), category: "Acessorios".to_string() },
-        Product { id: 9, name: "Suporte para Monitor".to_string(), category: "Acessorios".to_string() },
-    ];
+    println!("=========================================================");
+    println!("   SISTEMA DE BUSCA OTIMIZADO - MEGASTORE (UniFecaf)    ");
+    println!("=========================================================");
 
-    // 2. Indexação Otimizada com Tabelas Hash [cite: 44, 74]
-    let mut category_index: HashMap<String, Vec<u32>> = HashMap::new();
-    for p in &products {
-        category_index
-            .entry(p.category.to_lowercase())
-            .or_insert(Vec::new())
-            .push(p.id);
-    }
+    let catalogo: HashMap<String, Product> = carregar_catalogo();
+    
+    let mut grafo = Graph::new();
+    configurar_conexoes_grafo(&mut grafo);
 
-    // 3. Grafo de Relacionamentos 
-    let mut graph = Graph::new();
-    graph.add_edge(1, 2); // Notebook -> Mouse
-    graph.add_edge(1, 3); // Notebook -> Teclado
-    graph.add_edge(1, 5); // Notebook -> Monitor
-    graph.add_edge(7, 8); // Headset -> Webcam
-    graph.add_edge(7, 9); // Headset -> Suporte
+    println!("\n✅ {} produtos indexados. Sistema pronto!", catalogo.len());
 
-    println!("=== Sistema de Busca Otimizada MegaStore ===");
-
-    // 4. Loop de Busca Interativa
     loop {
-        print!("\nDigite a categoria que deseja procurar (ou 'sair'): ");
-        io::stdout().flush().unwrap(); // Garante que a mensagem apareça antes da entrada
+        print!("\n🔍 Digite o nome do produto (ou 'sair'): ");
+        io::stdout().flush().unwrap();
 
-        let mut input = String::new();
-        io::stdin().read_line(&mut input).expect("Erro ao ler a entrada");
-        let busca = input.trim().to_lowercase();
+        let mut busca = String::new();
+        io::stdin().read_line(&mut busca).expect("Falha ao ler entrada");
+        let termo = busca.trim();
 
-        if busca == "sair" {
-            println!("Encerrando o sistema...");
+        if termo.to_lowercase() == "sair" {
             break;
         }
 
-        // Realiza a busca rápida via HashMap [cite: 15, 22]
-        if let Some(ids) = category_index.get(&busca) {
-            println!("\n--- Resultados encontrados para: {} ---", busca);
-            for id in ids {
-                // Encontra os detalhes do produto
-                if let Some(p) = products.iter().find(|prod| prod.id == *id) {
-                    println!("Produto: {}", p.name);
-                    
-                    // Gera recomendações via BFS no Grafo 
-                    let recs = recommend_bfs(&graph, *id, 1);
-                    if !recs.is_empty() {
-                        print!("  -> Clientes também levaram: ");
-                        for r_id in recs {
-                            if let Some(rp) = products.iter().find(|prod| prod.id == r_id) {
-                                print!("[{}] ", rp.name);
-                            }
-                        }
-                        println!();
-                    }
-                }
-            }
-        } else {
-            println!("Nenhum produto encontrado para a categoria '{}'.", busca);
-        }
+        let agora = Instant::now();
+        let resultado = catalogo.get(termo);
+        let duracao_busca = agora.elapsed();
+
+        match resultado {
+            Some(p) => {
+                println!("\n✅ RESULTADO ENCONTRADO (Tempo: {:?})", duracao_busca);
+                println!("ID: {} | Nome: {} | Preço: R${:.2}", p.id, p.nome, p.preco);
+                println!("Marca: {} | Categoria: {}", p.marca, p.categoria);
+
+                println!("\n💡 RECOMENDAÇÃO: Clientes que viram este produto também viram:");
+                let recomendacoes = recommend_bfs(&grafo, p.id);
+
+                let mut encontrou_rec = false;
+                for id_rec in recomendacoes {
+                    if let Some(prod_rec) = catalogo.values().find(|x| x.id == id_rec) {
+                        println!(" -> {}", prod_rec.nome); // Aqui ele imprime o Nome em vez do ID
+                        encontrou_rec = true;
     }
+}
+
+if !encontrou_rec {
+    println!(" -> Nenhuma recomendação vinculada.");
+}
+            },
+            None => {
+                println!("\n❌ Produto '{}' não encontrado.", termo);
+            }
+        }
+        println!("---------------------------------------------------------");
+    }
+}
+
+fn configurar_conexoes_grafo(grafo: &mut Graph) {
+    grafo.add_edge(5001, 5002);
+    grafo.add_edge(5001, 5003);
+    grafo.add_edge(5002, 5003);
+    grafo.add_edge(5001, 10); 
 }
