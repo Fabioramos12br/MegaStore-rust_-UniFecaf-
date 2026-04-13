@@ -1,61 +1,92 @@
-# 🚀 MegaStore: Sistema de Busca e Recomendação de Alta Performance
+# Sistema de Busca Otimizado para Catálogo de Produtos - MegaStore
 
-Este projeto é um motor de busca e recomendação desenvolvido em **Rust** para a disciplina de estrutura de dados (UniFecaf). Ele demonstra como lidar com grandes volumes de dados (Big Data) e relações complexas entre produtos utilizando estruturas altamente eficientes como **HashMaps** e **Grafos**.
+## Descrição do Projeto
+O **MegaStore** é um sistema de busca de alta performance desenvolvido como projeto prático para a disciplina de Estrutura de Dados. O objetivo principal é demonstrar a viabilidade de processamento de grandes volumes de dados (Big Data) em tempo real, utilizando a linguagem Rust. O sistema permite a indexação de milhões de produtos e oferece funcionalidades de busca instantânea por múltiplos critérios e um motor de recomendação baseado em relacionamentos.
 
-## 🚀 Funcionalidades
+### Funcionalidades
+- **Busca Multi-índice**: Localização de itens por Marca, Categoria ou Nome.
+- **Motor de Recomendação**: Sugestões inteligentes baseadas em afinidade de produtos.
+- **Geração Massiva de Dados**: Simulação de um catálogo com 1.000.000 de itens.
+- **Análise de Latência**: Medição precisa do tempo de resposta em microssegundos.
 
-- **Busca Instantânea**: Localização de itens por nome exato em tempo constante $O(1)$ através de um `HashMap`, testado com um catálogo de **1.000.000 de produtos**.
-- **Motor de Recomendação Inteligente**: Utiliza um **Grafo não-direcionado** para mapear afinidades entre produtos.
-- **Algoritmo BFS (Breadth-First Search)**: Implementação de busca em largura para encontrar recomendações de vizinhança imediata.
-- **Geração Dinâmica de Dados**: Script para simulação de inventário em larga escala e inserção de itens específicos para testes.
-- **Interface CLI**: Terminal interativo com medição de tempo de resposta em microssegundos.
+## Tecnologias Utilizadas
+- **Linguagem**: Rust (Edição 2021).
+- **Gerenciador de Pacotes**: Cargo.
+- **Bibliotecas (Crates)**: Utiliza prioritariamente a `std` (Standard Library) do Rust para garantir máxima performance sem overhead, focando em `std::collections` (HashMap, VecDeque, HashSet).
+- **Ferramentas de Teste**: `cargo test` para testes unitários e de integração.
 
-## 🛠️ Arquitetura do Sistema
+## Instruções de Como Executar o Sistema de Busca
 
-O software é dividido em módulos para garantir manutenibilidade e separação de conceitos:
+### Pré-requisitos
+- Ter o Rust e Cargo instalados em sua máquina.
 
-- `src/main.rs`: Orquestrador principal. Gerencia o loop de entrada do usuário e exibe os resultados.
-- `src/models.rs`: Define a estrutura `Product` com metadados como preço, marca e categoria.
-- `src/graph.rs`: Implementação da estrutura de dados de Grafo (Lista de Adjacência).
-- `src/recommendation.rs`: Lógica algorítmica de travessia do grafo.
-- `src/data.rs`: Camada de persistência simulada que popula o catálogo.
+### Passo a Passo
+1. Clone o repositório ou navegue até a pasta do projeto.
+2. Para compilar e executar com otimizações de performance (recomendado para o volume de 1M de itens):
+   ```bash
+   cargo run --release
+   ```
+3. Para compilar em modo debug:
+   ```bash
+   cargo build
+   ```
 
-## 🧠 Engenharia de Software Aplicada
+## Instruções de Como Executar os Testes
+O projeto conta com uma suíte de testes para garantir a integridade das buscas e do motor de recomendação.
 
-### 1. Performance de Busca
-Diferente de uma busca linear em vetores ($O(n)$), o uso de uma Tabela Hash para o catálogo permite que o sistema encontre um produto específico entre milhões de entradas em apenas alguns microssegundos ($\approx 15\mu s$).
+1. Para executar todos os testes:
+   ```bash
+   cargo test
+   ```
+2. Para ver a saída detalhada dos testes:
+   ```bash
+   cargo test -- --nocapture
+   ```
 
-### 2. O Grafo de Relacionamentos
-As conexões entre produtos (Ex: *iPhone 15* ↔ *Monitor Gamer*) são representadas por arestas em um grafo. Isso permite expandir o motor de recomendações para sistemas de "Quem comprou, também comprou".
+## Exemplos de Uso
+Ao iniciar o sistema, você verá um prompt interativo. Aqui estão alguns exemplos de como interagir:
 
-### 3. Gestão de Memória com Rust
-O projeto tira proveito do sistema de *Ownership* do Rust para garantir que o catálogo massivo seja gerenciado sem *memory leaks* e sem a necessidade de um Garbage Collector.
+*   **Busca por Marca**: Digite `Apple` ou `Samsung`.
+*   **Busca por Categoria**: Digite `Eletrônicos` ou `Móveis`.
+*   **Busca por Nome Parcial**: Digite `iPhone` ou `Galaxy`.
+*   **Recomendações**: Ao selecionar um produto (ex: ID 5001), o sistema sugere automaticamente itens relacionados através do grafo.
 
-## 💻 Como Instalar e Rodar
+## Arquitetura do Sistema
+O sistema é modularizado para garantir separação de responsabilidades:
 
-### 1. Pré-requisitos
-*   Rust & Cargo instalados.
+*   `src/main.rs`: Orquestrador da Interface de Linha de Comando (CLI) e fluxo principal.
+*   `src/models.rs`: Definição da entidade `Product`.
+*   `src/graph.rs`: Implementação da estrutura de dados de Grafo (Lista de Adjacência).
+*   `src/recommendation.rs`: Implementação do algoritmo BFS.
+*   `src/data.rs`: Responsável pela geração e indexação inicial dos dados.
 
-### 2. Execução
-Para testar com a performance máxima (especialmente devido ao 1 milhão de itens), execute em modo release:
-```bash
-cargo run --release
-```
+## Algoritmos e Estruturas de Dados Utilizados
+A eficiência do sistema baseia-se na escolha criteriosa de estruturas de dados:
 
-## 📊 Exemplo de Fluxo
+1.  **Tabelas Hash (HashMaps)**:
+    - **Indexação por ID**: Busca $O(1)$ para recuperar detalhes do produto.
+    - **Indexação por Nome/Marca/Categoria**: Mapeia termos para listas de IDs, permitindo que a busca por filtros ocorra em tempo constante, independentemente do tamanho do catálogo.
+2.  **Grafos**:
+    - Utilizado para representar o ecossistema de produtos. Cada produto é um nó e as relações (afinidade de compra) são arestas.
+3.  **BFS (Breadth-First Search)**:
+    - Algoritmo de busca em largura utilizado no grafo para encontrar produtos "vizinhos" e gerar recomendações de primeiro e segundo nível.
 
-1. **Inicialização**: O sistema gera 1.000.000 de produtos e indexa nomes como "Smartphone Galaxy S24".
-2. **Busca**: O usuário digita "iPhone 15 Pro".
-3. **Processamento**: 
-   - O `HashMap` retorna o objeto `Product` instantaneamente.
-   - O motor de recomendação consulta o `Graph` pelo ID 5002.
-   - O BFS encontra IDs vizinhos (ex: 5001 e 5003).
-4. **Saída**: Exibe detalhes do produto e as sugestões de compra.
+## Considerações sobre Desempenho e Escalabilidade
+O sistema foi desenhado para escalabilidade vertical:
+- **Latência**: Em testes realizados com 1 milhão de produtos, o tempo de resposta médio para buscas indexadas foi de **15 a 30 microssegundos**.
+- **Uso de Memória**: O Rust gerencia a memória de forma eficiente através do sistema de *Ownership*, evitando pausar o sistema para Garbage Collection, o que é crítico em sistemas de recomendação em tempo real.
+- **Escalabilidade**: A complexidade $O(1)$ das tabelas hash garante que, mesmo dobrando o número de produtos, o tempo de busca permaneça praticamente inalterado.
 
-## 🚀 Próximos Passos (Roadmap)
-- [ ] **Otimização de Memória**: Utilizar um `HashMap<u32, &Product>` para busca de recomendações por ID em $O(1)$ (atualmente utiliza `.find()` que é linear).
-- [ ] **Busca por Prefixo**: Implementar uma árvore *Trie* para permitir buscas parciais (ex: digitar "Smart" e aparecer "Smartphone").
-- [ ] **Persistência Real**: Conectar a um banco de dados NoSQL ou SQLite.
+## Contribuições
+Este é um projeto acadêmico. Para contribuir:
+1. Faça um Fork do projeto.
+2. Crie uma branch para sua feature (`git checkout -b feature/nova-funcionalidade`).
+3. Commit suas mudanças (`git commit -m 'Adicionando nova funcionalidade'`).
+4. Push para a branch (`git push origin feature/nova-funcionalidade`).
+5. Abra um Pull Request.
+
+## Licença
+Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
 
 ---
-*Projeto desenvolvido para fins acadêmicos na UniFecaf.*
+*Projeto desenvolvido para a disciplina de Estrutura de Dados - UniFecaf.*
